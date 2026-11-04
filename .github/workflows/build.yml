@@ -61,8 +61,12 @@ jobs:
           --collect-submodules src
           --hidden-import Quartz --hidden-import ApplicationServices
           run.py
-      - name: Menu-bar app (no Dock icon)
-        run: plutil -insert LSUIElement -bool true dist/DeskPond.app/Contents/Info.plist
+      - name: Menu-bar app (no Dock icon) + re-sign
+        # 改了 Info.plist 之后签名就失效了，Apple 芯片的 Mac 会说「已损坏」：必须重新签一次（ad-hoc 签名）
+        run: |
+          plutil -insert LSUIElement -bool true dist/DeskPond.app/Contents/Info.plist
+          codesign --force --deep --sign - dist/DeskPond.app
+          codesign --verify --deep --strict --verbose=2 dist/DeskPond.app
       - name: Zip
         run: |
           mkdir -p out/DeskPond
