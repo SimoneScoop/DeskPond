@@ -1,0 +1,15 @@
+# 游戏素材永远不进仓库（运行时从本机游戏读取，缓存在 ~/Library/Application Support/DeskPond/）
+*.xnb
+*.png
+Content (unpacked)/
+_game_ref/
+snapshots/
+game_cache/
+
+# 构建 / 运行产物
+build/
+dist/
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
