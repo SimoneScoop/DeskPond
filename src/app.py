@@ -842,6 +842,8 @@ class AppDelegate(NSObject):
             self._message("重新读取失败", str(exc))
             return
         sys.stdout.flush()
+        if getattr(sys, "frozen", False):            # 打包成 DeskPond.app 时：直接重启自己
+            os.execv(sys.executable, [sys.executable] + sys.argv[1:])
         script = os.path.abspath(sys.argv[0])
         os.execv(sys.executable, [sys.executable, "-u", script] + sys.argv[1:])
 

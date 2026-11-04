@@ -1,0 +1,80 @@
+# 自动打包：在 GitHub 的 Windows 和 Mac 机器上把程序打包成双击就能用的版本。
+#
+# - 在网页上发布一个 Release（比如 v1.0.0）时自动运行，打好的
+#   DeskPond-Windows.zip 和 DeskPond-macOS.zip 会自动挂到这个 Release 下面。
+# - 也可以在 Actions 页面手动运行（Run workflow），打好的包在这次运行的 Artifacts 里，用来先试一下。
+#
+# 打出来的包不含任何游戏素材：程序运行时从用户自己安装的《星露谷物语》里读取。
+name: Build
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install -r requirements-windows.txt pyinstaller==6.11.1
+      - name: Build
+        run: >
+          python -m PyInstaller --noconfirm --windowed --name DeskPond
+          --collect-submodules src run_win.pyw
+      - name: Zip
+        shell: pwsh
+        run: |
+          Copy-Item README.md, LICENSE, NOTICE.md dist/DeskPond/
+          Compress-Archive -Path dist/DeskPond -DestinationPath DeskPond-Windows.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DeskPond-Windows
+          path: DeskPond-Windows.zip
+      - name: Attach to release
+        if: github.event_name == 'release'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" DeskPond-Windows.zip --clobber
+
+  macos:
+    runs-on: macos-latest          # Apple 芯片（M1 及以后）；Intel Mac 请用源码运行
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install -r requirements.txt pyinstaller==6.11.1
+      - name: Build
+        run: >
+          python -m PyInstaller --noconfirm --windowed --name DeskPond
+          --osx-bundle-identifier io.github.simonescoop.deskpond
+          --collect-submodules src
+          --hidden-import Quartz --hidden-import ApplicationServices
+          run.py
+      - name: Menu-bar app (no Dock icon)
+        run: plutil -insert LSUIElement -bool true dist/DeskPond.app/Contents/Info.plist
+      - name: Zip
+        run: |
+          mkdir -p out/DeskPond
+          cp -R dist/DeskPond.app out/DeskPond/
+          cp README.md LICENSE NOTICE.md out/DeskPond/
+          ditto -c -k --keepParent out/DeskPond DeskPond-macOS.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DeskPond-macOS
+          path: DeskPond-macOS.zip
+      - name: Attach to release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" DeskPond-macOS.zip --clobber
