@@ -39,7 +39,9 @@
 
 - **Windows**：出现「Windows 已保护你的电脑」→ 点「更多信息」→「仍要运行」
 - **Mac**：提示「无法验证开发者」或「无法打开」→ 先点「完成」，再打开「系统设置 → 隐私与安全性」，
-  往下找到 DeskPond，点「仍要打开」（较旧的 macOS 也可以右键 `DeskPond.app` →「打开」）
+  往下找到 DeskPond，点「仍要打开」（较旧的 macOS 也可以右键 `DeskPond.app` →「打开」）。
+  如果提示「已损坏」或者找不到「仍要打开」：把 `DeskPond.app` 拖进「应用程序」，打开「终端」运行
+  `xattr -dr com.apple.quarantine /Applications/DeskPond.app`，再双击打开
 
 打开后，Mac 屏幕右上角菜单栏、Windows 右下角托盘里出现 🎣 就是开好了（Mac 版不会出现在 Dock 里）。
 Mac 上想用老板键 ⌥⌘F，还要在「系统设置 → 隐私与安全性 → 辅助功能」里勾上 DeskPond。
