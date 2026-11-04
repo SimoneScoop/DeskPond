@@ -2,7 +2,8 @@
 #
 # - 在网页上发布一个 Release（比如 v1.0.0）时自动运行，打好的
 #   DeskPond-Windows.zip 和 DeskPond-macOS.zip 会自动挂到这个 Release 下面。
-# - 也可以在 Actions 页面手动运行（Run workflow），打好的包在这次运行的 Artifacts 里，用来先试一下。
+# - 也可以在 Actions 页面手动运行（Run workflow）：打好的包在这次运行的 Artifacts 里；
+#   如果填了 tag（比如 v1.0.0），还会挂到这个已经存在的 Release 下面（Release 比本文件早发布时用来补包）。
 #
 # 打出来的包不含任何游戏素材：程序运行时从用户自己安装的《星露谷物语》里读取。
 name: Build
@@ -11,9 +12,17 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "要补挂安装包的 Release 标签（比如 v1.0.0）；留空 = 只打包不上传"
+        required: false
+        default: ""
 
 permissions:
   contents: write
+
+env:
+  RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
 
 jobs:
   windows:
@@ -39,11 +48,11 @@ jobs:
           name: DeskPond-Windows
           path: DeskPond-Windows.zip
       - name: Attach to release
-        if: github.event_name == 'release'
+        if: env.RELEASE_TAG != ''
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" DeskPond-Windows.zip --clobber
+        run: gh release upload "$RELEASE_TAG" DeskPond-Windows.zip --clobber
 
   macos:
     runs-on: macos-latest          # Apple 芯片（M1 及以后）；Intel Mac 请用源码运行
@@ -78,7 +87,7 @@ jobs:
           name: DeskPond-macOS
           path: DeskPond-macOS.zip
       - name: Attach to release
-        if: github.event_name == 'release'
+        if: env.RELEASE_TAG != ''
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" DeskPond-macOS.zip --clobber
+        run: gh release upload "$RELEASE_TAG" DeskPond-macOS.zip --clobber
