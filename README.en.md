@@ -21,8 +21,38 @@ Runs on macOS and Windows.
 > No game assets are included in this repository — you need to own and install the game.
 > The interface text is currently in Chinese (it uses the game's own Chinese font).
 
+## Download
+
+Make sure Stardew Valley is installed (Steam / GOG / App Store / Xbox App), then pick your system.
+
+### Easiest: ready-to-run builds
+
+Grab them from the **[latest release](https://github.com/SimoneScoop/DeskPond/releases/latest)** (under *Assets*) — no Python needed:
+
+| System | Download | How to open |
+| --- | --- | --- |
+| **Windows** 10 / 11 | `DeskPond-Windows.zip` | Unzip → open the `DeskPond` folder → double-click `DeskPond.exe` |
+| **Mac** (Apple silicon, M1 or later) | `DeskPond-macOS.zip` | Unzip → drag `DeskPond.app` into Applications → open it |
+
+**The first launch is blocked once** because the builds aren't signed with a paid developer certificate:
+
+- **Windows**: "Windows protected your PC" → *More info* → *Run anyway*
+- **Mac**: "cannot be opened / developer cannot be verified" → click *Done*, then go to *System Settings → Privacy & Security*,
+  scroll down and click *Open Anyway* for DeskPond (on older macOS you can right-click `DeskPond.app` → *Open*)
+
+When 🎣 appears in the Mac menu bar or the Windows tray, it's running (the Mac app has no Dock icon).
+For the ⌥⌘F boss key on Mac, also allow DeskPond under *System Settings → Privacy & Security → Accessibility*.
+
+> No build for Intel Macs yet — please run from source.
+
+### From source
+
+[Download the source zip](https://github.com/SimoneScoop/DeskPond/archive/refs/heads/main.zip) (or `git clone`) and follow the
+[macOS](#install--run-macos) or [Windows](#install--run-windows) steps below.
+
 ## Contents
 
+- [Download](#download)
 - [Demo](#demo)
 - [Features](#features)
 - [Requirements](#requirements)
@@ -75,9 +105,13 @@ Runs on macOS and Windows.
 
 ## Install & run: macOS
 
+> Just want to use it? Take the ready-made build from [Download](#download). These are the from-source steps.
+
+1. Install Python 3.9+ from [python.org](https://www.python.org/downloads/macos/) if you don't have it
+2. Get the code: unzip the [source zip](https://github.com/SimoneScoop/DeskPond/archive/refs/heads/main.zip) or `git clone`
+3. Open Terminal in that folder (type `cd `, drag the folder into the window, press Enter) and run:
+
 ```bash
-git clone https://github.com/SimoneScoop/DeskPond.git
-cd DeskPond
 python3 -m pip install -r requirements.txt
 python3 run.py
 ```
@@ -95,9 +129,13 @@ If the game isn't found you'll be asked to pick it:
 
 ## Install & run: Windows
 
+> Just want to use it? Take `DeskPond-Windows.zip` from [Download](#download). These are the from-source steps.
+
+1. Install Python 3.9+ from [python.org](https://www.python.org/downloads/windows/) — **tick "Add python.exe to PATH"**
+2. Get the code: unzip the [source zip](https://github.com/SimoneScoop/DeskPond/archive/refs/heads/main.zip) or `git clone`
+3. Open the folder, type `cmd` in the address bar, press Enter, and run:
+
 ```bat
-git clone https://github.com/SimoneScoop/DeskPond.git
-cd DeskPond
 python -m pip install -r requirements-windows.txt
 python run_win.pyw
 ```
@@ -229,6 +267,9 @@ python3 tools/copy_ref.py                             # copy the game textures a
 python3 tools/make_media.py                           # record the README GIFs from _game_ref/
 python3 tools/export_clean.py                         # export a clean copy for uploading through the GitHub website
 ```
+
+**Releasing**: publish a GitHub Release (e.g. `v1.0.1`) and `.github/workflows/build.yml` builds `DeskPond-Windows.zip`
+and `DeskPond-macOS.zip` on GitHub's runners and attaches them to the release. You can also run it manually from the Actions tab.
 
 `_game_ref/`, `snapshots/` and the game cache contain game assets and are git-ignored — **never commit them**.
 Game logic is platform-independent and shared; `src/ui/` is the macOS UI (PyObjC) and `src/win/` the Windows UI (Qt).

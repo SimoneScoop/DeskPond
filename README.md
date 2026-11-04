@@ -22,8 +22,38 @@
 > 和游戏 mod 一样，美术、字体和鱼类数据都从**你电脑上安装的《星露谷物语》**里读取，仓库里不含任何游戏素材。
 > 需要先拥有并安装正版《星露谷物语》。
 
+## 下载
+
+先确认电脑上装着正版《星露谷物语》（Steam / GOG / App Store / Xbox App 都行），然后按你的系统选。
+
+### 普通用户：下载打包好的程序（推荐）
+
+到 **[Releases 页面](https://github.com/SimoneScoop/DeskPond/releases/latest)** 下面的「Assets」里下载，不用装 Python：
+
+| 系统 | 下载这个 | 怎么打开 |
+| --- | --- | --- |
+| **Windows** 10 / 11 | `DeskPond-Windows.zip` | 解压 → 打开 `DeskPond` 文件夹 → 双击 `DeskPond.exe` |
+| **Mac**（M1 及以后的 Apple 芯片） | `DeskPond-macOS.zip` | 解压 → 把 `DeskPond.app` 拖进「应用程序」→ 双击打开 |
+
+**第一次打开会被系统拦一下**，这是因为程序没有付费的开发者签名，属于正常情况：
+
+- **Windows**：出现「Windows 已保护你的电脑」→ 点「更多信息」→「仍要运行」
+- **Mac**：提示「无法验证开发者」或「无法打开」→ 先点「完成」，再打开「系统设置 → 隐私与安全性」，
+  往下找到 DeskPond，点「仍要打开」（较旧的 macOS 也可以右键 `DeskPond.app` →「打开」）
+
+打开后，Mac 屏幕右上角菜单栏、Windows 右下角托盘里出现 🎣 就是开好了（Mac 版不会出现在 Dock 里）。
+Mac 上想用老板键 ⌥⌘F，还要在「系统设置 → 隐私与安全性 → 辅助功能」里勾上 DeskPond。
+
+> Intel 芯片的 Mac 暂时没有打包版，请用下面的源码方式运行。
+
+### 进阶：用源码运行
+
+不会用 git 的话，点 **[下载源码 zip](https://github.com/SimoneScoop/DeskPond/archive/refs/heads/main.zip)**，解压后按
+[macOS](#安装与运行macos) 或 [Windows](#安装与运行windows) 的步骤来；会用 git 就直接 `git clone`。
+
 ## 目录
 
+- [下载](#下载)
 - [看看效果](#看看效果)
 - [特点](#特点)
 - [需要什么](#需要什么)
@@ -77,9 +107,13 @@
 
 ## 安装与运行：macOS
 
+> 只想用、不想折腾的话，直接用上面 [下载](#下载) 里的打包版。下面是用源码运行的方法。
+
+1. 没装过 Python 的话，到 [python.org](https://www.python.org/downloads/macos/) 下载安装（3.9 或更新）
+2. 下载源码：[源码 zip](https://github.com/SimoneScoop/DeskPond/archive/refs/heads/main.zip) 解压，或 `git clone`
+3. 打开「终端」，进入解压出来的文件夹（输入 `cd ` 加一个空格，再把文件夹拖进终端窗口，回车），然后运行：
+
 ```bash
-git clone https://github.com/SimoneScoop/DeskPond.git
-cd DeskPond
 python3 -m pip install -r requirements.txt
 python3 run.py
 ```
@@ -97,9 +131,13 @@ python3 run.py
 
 ## 安装与运行：Windows
 
+> 只想用、不想折腾的话，直接用上面 [下载](#下载) 里的 `DeskPond-Windows.zip`。下面是用源码运行的方法。
+
+1. 没装过 Python 的话，到 [python.org](https://www.python.org/downloads/windows/) 下载安装（3.9 或更新），**安装时勾上「Add python.exe to PATH」**
+2. 下载源码：[源码 zip](https://github.com/SimoneScoop/DeskPond/archive/refs/heads/main.zip) 解压，或 `git clone`
+3. 打开解压出来的文件夹，在地址栏输入 `cmd` 回车，在弹出的黑窗口里运行：
+
 ```bat
-git clone https://github.com/SimoneScoop/DeskPond.git
-cd DeskPond
 python -m pip install -r requirements-windows.txt
 python run_win.pyw
 ```
@@ -107,8 +145,8 @@ python run_win.pyw
 以后直接**双击 `run_win.pyw`** 就能启动（不弹黑窗口）。程序会自动找 Steam（包括装在其他盘的 Steam 库）、GOG、
 Xbox App 的常见安装位置；找不到会让你选游戏文件夹（选 `Stardew Valley` 或里面的 `Content` 都行）。
 
-- **打包成 exe**：双击 `tools\build_windows.bat`，结果在 `dist\DeskPond\DeskPond.exe`。
-  同样不含游戏素材，对方电脑上也要装着游戏
+- **自己打包成 exe**：双击 `tools\build_windows.bat`，结果在 `dist\DeskPond\DeskPond.exe`。
+  同样不含游戏素材，对方电脑上也要装着游戏（Releases 里的打包版是 GitHub 自动打的，见「开发」）
 - **开机自启**：Win+R 输入 `shell:startup`，把 `run_win.pyw`（或 exe）的快捷方式放进去
 
 | | macOS | Windows |
@@ -293,6 +331,10 @@ python3 tools/copy_ref.py                             # 把用到的原版贴图
 python3 tools/make_media.py                           # 用 _game_ref/ 录 README 的演示动图（需要 PySide6、Pillow）
 python3 tools/export_clean.py                         # 导出只含代码和文档的干净副本（网页上传 GitHub 时用）
 ```
+
+**发布新版本**：在 GitHub 上发布一个 Release（比如 `v1.0.1`）后，`.github/workflows/build.yml` 会自动在 GitHub 的
+Windows 和 Mac 机器上打包，把 `DeskPond-Windows.zip`、`DeskPond-macOS.zip` 挂到这个 Release 下面，不用手动上传。
+也可以在 Actions 页面手动运行它，先拿打好的包试一下。
 
 > `_game_ref/`、`snapshots/` 和游戏缓存里都是游戏素材，已经在 `.gitignore` 里，**不要提交**。
 > 用 git 命令行或 GitHub Desktop 提交时 `.gitignore` 会生效；如果用网页「Upload files」拖文件夹，

@@ -25,5 +25,7 @@
 - 图鉴照原版「收藏」菜单的样子；对话框也是原版风格
 - 菜单按「用得上才出现」整理；水面和农田都有右键菜单
 
-**平台**
-- macOS（PyObjC）和 Windows（Qt / PySide6）共用全部游戏逻辑；Windows 版可以打包成 exe
+**平台和下载**
+- macOS（PyObjC）和 Windows（Qt / PySide6）共用全部游戏逻辑
+- Release 里提供打包好的 `DeskPond-Windows.zip` 和 `DeskPond-macOS.zip`（Apple 芯片），不用装 Python，
+  由 GitHub 自动打包；Intel Mac 和想看源码的用户可以直接用源码运行
