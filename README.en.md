@@ -46,7 +46,8 @@ Grab them from the **[latest release](https://github.com/SimoneScoop/DeskPond/re
   If there's no *Open Anyway* button, or macOS says the app is "damaged", run
   `xattr -cr /Applications/DeskPond.app` in Terminal and open it again
 
-When 🎣 appears in the Mac menu bar or the Windows tray, it's running (the Mac app has no Dock icon).
+When the icon appears in the Mac menu bar or the Windows tray, it's running (the Mac app has no Dock icon).
+It starts as 🎣 (the game's red-and-white bobber on Windows) and turns into fish as your collection grows — see [Menu bar / tray icon](#menu-bar--tray-icon).
 For the ⌥⌘F boss key on Mac, also allow DeskPond under *System Settings → Privacy & Security → Accessibility*.
 
 > No build for Intel Macs yet — please run from source.
@@ -66,6 +67,7 @@ For the ⌥⌘F boss key on Mac, also allow DeskPond under *System Settings → 
 - [Install & run: Windows](#install--run-windows)
 - [How to play](#how-to-play)
 - [Shortcuts](#shortcuts)
+- [Menu bar / tray icon](#menu-bar--tray-icon)
 - [Game mechanics](#game-mechanics)
 - [FAQ](#faq)
 - [Where your data lives](#where-your-data-lives)
@@ -154,7 +156,7 @@ Steam libraries), GOG and Xbox App locations, and asks you to pick the folder if
 
 ## How to play
 
-1. Click 🎣 in the menu bar / tray → **Start focus 🍅**
+1. Click the icon in the menu bar / tray → **Start focus 🍅**
 2. When the focus session ends, a pond rises at the bottom of the screen
 3. **Click the water** to cast — the bobber lands where you click. **Higher up means deeper water**, where bigger fish bite
 4. Click again when **"!"** appears — too early scares the fish, too late lets it go
@@ -174,6 +176,15 @@ Durations: 25+5, 45+10, 50+10, or custom (focus 1–180 min, break 1–60 min).
 | Close the collection, shop and other windows | Esc / ⌘W / red ✕ | Esc / Ctrl+W / red ✕ |
 | Quick menu on the pond / farm | Right-click | Right-click |
 | Change pond height | Drag its top edge, double-click to reset | Same |
+
+## Menu bar / tray icon
+
+| When | macOS menu bar | Windows tray |
+| --- | --- | --- |
+| Idle | 🎣 → 🐠 after 10 species → 🐡 after 24 → 👑 when complete | Bobber → sunfish after 10 → pufferfish after 24 |
+| Focusing | 🍅 24:59 | Red circle with minutes left |
+| Fishing break | 🐟 04:59 | Blue circle with minutes left |
+| Paused | ⏸ 12:34 | Grey circle |
 
 ## Game mechanics
 
@@ -249,7 +260,9 @@ Native `.xnb` files (LZX compression, DXT textures, SpriteFonts) are decoded in 
 ## FAQ
 
 **The menu bar icon disappeared.** macOS hides status icons that don't fit when the frontmost app has a long menu.
-Press ⌥⌘M to open the same menu at the mouse, or ⌘-drag 🎣 further right.
+Press ⌥⌘M to open the same menu at the mouse, or ⌘-drag the icon further right.
+
+**Why is the icon a fish now?** It's a collection reward: the idle icon changes from 🎣 to 🐠 at 10 species, 🐡 at 24 and 👑 when you've caught them all.
 
 **Does it modify my game or saves?** No. It only reads game files; your progress is stored separately (see below).
 
