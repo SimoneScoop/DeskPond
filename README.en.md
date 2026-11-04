@@ -37,10 +37,14 @@ Grab them from the **[latest release](https://github.com/SimoneScoop/DeskPond/re
 **The first launch is blocked once** because the builds aren't signed with a paid developer certificate:
 
 - **Windows**: "Windows protected your PC" → *More info* → *Run anyway*
-- **Mac**: "cannot be opened / developer cannot be verified" → click *Done*, then go to *System Settings → Privacy & Security*,
-  scroll down and click *Open Anyway* for DeskPond (on older macOS you can right-click `DeskPond.app` → *Open*).
-  If macOS says the app is "damaged" or there's no *Open Anyway* button, move it to Applications and run
-  `xattr -dr com.apple.quarantine /Applications/DeskPond.app` in Terminal, then open it again
+- **Mac** (one time only):
+  1. Double-click the zip to unzip it, drag `DeskPond.app` into Applications and open it
+  2. macOS says *"DeskPond" cannot be opened because Apple cannot check it for malicious software* → click *OK*
+  3. Open *System Settings → Privacy & Security*, scroll down to *Security*, and click *Open Anyway* next to "DeskPond was blocked"
+  4. Enter your password and click *Open Anyway* again in the confirmation
+
+  If there's no *Open Anyway* button, or macOS says the app is "damaged", run
+  `xattr -cr /Applications/DeskPond.app` in Terminal and open it again
 
 When 🎣 appears in the Mac menu bar or the Windows tray, it's running (the Mac app has no Dock icon).
 For the ⌥⌘F boss key on Mac, also allow DeskPond under *System Settings → Privacy & Security → Accessibility*.
