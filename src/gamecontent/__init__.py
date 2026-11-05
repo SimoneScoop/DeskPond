@@ -346,7 +346,7 @@ def cache_is_fresh(content_dirs=None):
 
 def build_cache(content_dirs, log=None):
     from .. import fishdata
-    log = log or (lambda m: sys.stdout.write(m + "\n"))
+    log = log or print          # 不用 sys.stdout.write：Windows 打包版（无控制台）里 sys.stdout 是 None
     log("[素材] 读取自: %s" % content_dirs[0])
     tmp = CACHE_ROOT + ".tmp"
     shutil.rmtree(tmp, ignore_errors=True)

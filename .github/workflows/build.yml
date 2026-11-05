@@ -38,6 +38,20 @@ jobs:
         run: >
           python -m PyInstaller --noconfirm --windowed --name DeskPond
           --collect-submodules src run_win.pyw
+      - name: Smoke test (start the packaged exe with a fake game folder)
+        # 用假的游戏素材真的跑一遍打好的 exe：能读素材、建托盘、进主循环，3 秒后自己退出。
+        # 不通过就不发布，免得用户下到打不开的包。
+        shell: bash
+        run: |
+          python -c "import sys; sys.path.insert(0, 'tests'); import test_qt_smoke as T; print(T.make_game(sys.argv[1])[0])" "$RUNNER_TEMP/fake" > game_dir.txt
+          set +e
+          DESKPOND_GAME_DIR="$(cat game_dir.txt)" timeout 600 dist/DeskPond/DeskPond.exe --selftest
+          code=$?
+          set -e
+          echo "---- deskpond.log ----"; cat "$APPDATA/DeskPond/deskpond.log" || true
+          echo "exit code: $code"
+          grep -q "自检通过" "$APPDATA/DeskPond/deskpond.log"
+          test "$code" = 0
       - name: Zip
         shell: pwsh
         run: |

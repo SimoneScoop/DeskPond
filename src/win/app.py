@@ -11,14 +11,15 @@ import sys
 import time
 import traceback
 
-from PySide6.QtCore import QObject, Qt, QTimer
+from PySide6.QtCore import QLockFile, QObject, Qt, QTimer
 from PySide6.QtGui import QAction, QColor, QCursor, QFont, QFontDatabase, QIcon, QPainter, QPixmap
-from PySide6.QtWidgets import QApplication, QFileDialog, QMenu, QMessageBox, QSystemTrayIcon
+from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QMenu, QMessageBox, QSystemTrayIcon
 
 from .. import collection as col
 from .. import farm as farmlib
 from .. import fishdata, gamecontent, pomodoro, prefs, progression, world
 from .. import session as S
+from ..paths import DATA_DIR
 from ..ui import layout as L
 from ..ui import dialog_model
 from ..ui import menu_model as MM
@@ -38,6 +39,8 @@ DEFAULT_MODE = "original"
 MODES = [("original", "原版手感"), ("casual", "轻松")]
 BOSS_KEY_LABEL = "Ctrl+Alt+F"
 MENU_KEY_LABEL = "Ctrl+Alt+M"
+SELFTEST = "--selftest" in sys.argv     # 打包后自检（GitHub Actions 用）：启动成功 3 秒后自己退出，不弹任何框
+TRAY_HINT = "图标在屏幕右下角托盘里；看不到的话点任务栏右边的 ^ 小箭头。"
 
 SOUNDS = {"break_start": "start", "break_end": "end", S.EV_CAST: "cast", S.EV_BITE: "bite",
           "caught": "caught", "new_fish": "new", S.EV_ESCAPED: "escaped", S.EV_JUNK: "junk"}
@@ -118,7 +121,7 @@ class App(QObject):
         """素材不随仓库分发：从本机安装的《星露谷物语》读取并缓存（和 mod 一样）。"""
         message = None
         try:
-            gamecontent.ensure_cache(game_dir=prefs.get("game_dir"))
+            gamecontent.ensure_cache(game_dir=prefs.get("game_dir"), log=self._loading_log)
         except gamecontent.GameNotFound:
             message = ("桌面摸鱼不自带游戏图片，需要从你电脑上安装的《星露谷物语》里读取"
                        "（和游戏 mod 的做法一样）。\n\n没有在常见位置找到游戏，请选择游戏文件夹。\n"
@@ -126,8 +129,13 @@ class App(QObject):
         except Exception as exc:
             traceback.print_exc()
             message = "读取游戏素材时出错：\n%s\n\n可以换一个游戏目录，或选择解包后的「Content (unpacked)」文件夹。" % exc
+        self._loading_done()
+        if message is not None and SELFTEST:
+            print("[桌面摸鱼] 自检失败：" + message)
+            return False
         while message is not None:
             box = QMessageBox(QMessageBox.Information, "需要读取《星露谷物语》的游戏素材", message)
+            box.setWindowFlag(Qt.WindowStaysOnTopHint)
             pick = box.addButton("选择游戏文件夹…", QMessageBox.AcceptRole)
             box.addButton("退出", QMessageBox.RejectRole)
             box.exec()
@@ -137,7 +145,7 @@ class App(QObject):
             if not chosen:
                 continue
             try:
-                gamecontent.ensure_cache(game_dir=chosen, force=True)
+                gamecontent.ensure_cache(game_dir=chosen, force=True, log=self._loading_log)
             except gamecontent.GameNotFound:
                 message = "这个文件夹里没找到游戏素材（需要有 Content\\LooseSprites、Content\\Data）：\n%s" % chosen
                 continue
@@ -145,6 +153,8 @@ class App(QObject):
                 traceback.print_exc()
                 message = "读取失败：%s" % exc
                 continue
+            finally:
+                self._loading_done()
             prefs.set("game_dir", chosen)
             message = None
         self.fish_list = gamecontent.load_fish_list()
@@ -152,6 +162,29 @@ class App(QObject):
             QMessageBox.warning(None, "没读到鱼的数据", "Data/Fish 里没有可以钓的鱼，可能是游戏版本太旧或文件损坏。")
             return False
         return True
+
+    def _loading_log(self, line):
+        """第一次启动要从游戏里解出素材（几十秒到一两分钟）：这期间显示一个提示窗，不然像没反应。"""
+        print(line)
+        if getattr(self, "loading", None) is None:
+            self.loading = QLabel("桌面摸鱼：第一次启动，正在从《星露谷物语》读取素材…\n"
+                                  "大约需要半分钟到两分钟，读完会自动打开，请稍等。")
+            self.loading.setWindowTitle(APP_NAME)
+            self.loading.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint)
+            self.loading.setAlignment(Qt.AlignCenter)
+            self.loading.setMargin(28)
+            f = self.loading.font()
+            f.setPointSize(11)
+            self.loading.setFont(f)
+            self.loading.show()
+            self.loading.raise_()
+            self.loading.activateWindow()
+        self.qapp.processEvents()
+
+    def _loading_done(self):
+        if getattr(self, "loading", None) is not None:
+            self.loading.close()
+            self.loading = None
 
     def _welcome(self):
         text = (dialog_model.WELCOME_TEXT % (self.pomo.focus / 60, BOSS_KEY_LABEL)
@@ -162,6 +195,8 @@ class App(QObject):
                 self.start_focus()
             elif key == "fish":
                 self.fish_now()
+        if self.tray is not None:
+            self.tray.showMessage("桌面摸鱼已经在运行", TRAY_HINT, QSystemTrayIcon.Information, 8000)
         self.dialog = GameDialog(dialog_model.Dialog("桌面摸鱼", text, dialog_model.WELCOME_BUTTONS),
                                  done).show()
 
@@ -693,6 +728,7 @@ class App(QObject):
             self._message("重新读取失败", str(exc))
             return
         from PySide6.QtCore import QProcess
+        _release_lock()                              # 不然新进程会以为「已经在运行」
         if getattr(sys, "frozen", False):            # 打包成 exe 时
             QProcess.startDetached(sys.executable, sys.argv[1:])
         else:
@@ -716,14 +752,41 @@ def _pick_font():
             return
 
 
+_lock = []
+
+
+def _single_instance():
+    """只允许开一个：重复双击时提示它已经在托盘里了（托盘图标常被 Windows 收进 ^ 里）。"""
+    os.makedirs(DATA_DIR, exist_ok=True)
+    lock = QLockFile(os.path.join(DATA_DIR, "deskpond.lock"))
+    lock.setStaleLockTime(0)
+    if not lock.tryLock(200):
+        return False
+    _lock.append(lock)
+    return True
+
+
+def _release_lock():
+    while _lock:
+        _lock.pop().unlock()
+
+
 def main():
     qapp = QApplication.instance() or QApplication(sys.argv)
     qapp.setApplicationName(APP_NAME)
     qapp.setQuitOnLastWindowClosed(False)       # 关掉图鉴窗口不退出，托盘里还在
+    if not SELFTEST and not _single_instance():
+        box = QMessageBox(QMessageBox.Information, APP_NAME, "桌面摸鱼已经在运行了。\n\n" + TRAY_HINT)
+        box.setWindowFlag(Qt.WindowStaysOnTopHint)
+        box.exec()
+        return 0
     _pick_font()
     if not QSystemTrayIcon.isSystemTrayAvailable():
         print("[桌面摸鱼] 这个系统没有托盘区，只能用快捷键 %s 打开菜单" % MENU_KEY_LABEL)
     app = App(qapp)
     if not app.start():
         return 1
+    if SELFTEST:
+        print("[桌面摸鱼] 自检通过")
+        QTimer.singleShot(3000, app.quit)
     return qapp.exec()
