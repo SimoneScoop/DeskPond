@@ -41,3 +41,14 @@ def migrate_old_dir(base=None):
 
 migrate_old_dir()
 DATA_DIR = data_dir()
+
+
+def load_json(path):
+    """读 JSON：统一按 UTF-8；老版本在中文 Windows 上可能按系统编码（GBK）写过，读不了 UTF-8 就退回系统编码。"""
+    import json
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh)
+    except UnicodeDecodeError:
+        with open(path) as fh:
+            return json.load(fh)

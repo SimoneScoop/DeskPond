@@ -19,11 +19,12 @@ import sys
 
 from . import png, xnb
 
-CACHE_VERSION = 12         # 12：一小一大两套中文字体
+CACHE_VERSION = 13         # 12：一小一大两套中文字体；13：缓存统一 UTF-8（老缓存在中文 Windows 上可能是 GBK）
                            # 11：两排连着的锄地（农田扩建后）
                            # 10：浇过水的锄地（桌面农田专注时用）
                            # 9：原版位图字体（Fonts）、番茄图标
                            # 8：桌面农田（草地/栅栏/稻草人）、鱼竿图标、关闭按钮、配件图标和中文名
+from .. import paths as _paths
 from ..paths import DATA_DIR as APP_SUPPORT
 CACHE_ROOT = os.path.join(APP_SUPPORT, "game_cache")
 ENV_GAME_DIR = "DESKPOND_GAME_DIR"
@@ -333,8 +334,7 @@ def _sources(content_dirs):
 
 def cache_is_fresh(content_dirs=None):
     try:
-        with open(_stamp_path()) as fh:
-            stamp = json.load(fh)
+        stamp = _paths.load_json(_stamp_path())
     except (IOError, OSError, ValueError):
         return False
     if stamp.get("version") != CACHE_VERSION:
@@ -437,7 +437,7 @@ def build_cache(content_dirs, log=None):
         png.write_rgba(os.path.join(tmp, "fish", f.id + "_s.png"), OBJECT_TILE, OBJECT_TILE,
                        silhouette(tile))
         kept.append(f)
-    with open(os.path.join(tmp, "fish.json"), "w") as fh:
+    with open(os.path.join(tmp, "fish.json"), "w", encoding="utf-8") as fh:
         json.dump([f.to_dict() for f in kept], fh, ensure_ascii=False, indent=1)
     log("  可钓的鱼 %d 种" % len(kept))
 
@@ -451,10 +451,10 @@ def build_cache(content_dirs, log=None):
             png.write_rgba(os.path.join(tmp, "junk", jid + "_s.png"), OBJECT_TILE, OBJECT_TILE,
                            silhouette(tile))
         items.append(fishdata.Junk(jid, en, names.get(en)).to_dict())
-    with open(os.path.join(tmp, "junk.json"), "w") as fh:
+    with open(os.path.join(tmp, "junk.json"), "w", encoding="utf-8") as fh:
         json.dump(items, fh, ensure_ascii=False, indent=1)
 
-    with open(os.path.join(tmp, "stamp.json"), "w") as fh:
+    with open(os.path.join(tmp, "stamp.json"), "w", encoding="utf-8") as fh:
         json.dump({"version": CACHE_VERSION, "sources": _sources(content_dirs),
                    "bobber_styles": styles}, fh, indent=1)
     shutil.rmtree(CACHE_ROOT, ignore_errors=True)
@@ -478,7 +478,7 @@ def ensure_cache(game_dir=None, force=False, log=None):
 
 def load_fish_list():
     from .. import fishdata
-    with open(os.path.join(CACHE_ROOT, "fish.json")) as fh:
+    with open(os.path.join(CACHE_ROOT, "fish.json"), encoding="utf-8") as fh:
         return [fishdata.Fish.from_dict(d) for d in json.load(fh)]
 
 
@@ -497,7 +497,7 @@ def load_junk():
     """杂物和宝物 id -> Junk（带中文名）。老缓存里没有就只用英文名。"""
     from .. import fishdata
     try:
-        with open(os.path.join(CACHE_ROOT, "junk.json")) as fh:
+        with open(os.path.join(CACHE_ROOT, "junk.json"), encoding="utf-8") as fh:
             items = [fishdata.Junk.from_dict(d) for d in json.load(fh)]
     except (IOError, OSError, ValueError):
         items = []
@@ -524,7 +524,7 @@ def _cache_crops(tmp, content_dirs, log):
         log("  Data/Crops 读不了（%s），用内置作物表" % exc.__class__.__name__)
     table = farm.crop_table(raw)
     os.makedirs(os.path.join(tmp, "crops"))
-    with open(os.path.join(tmp, "crops.json"), "w") as fh:
+    with open(os.path.join(tmp, "crops.json"), "w", encoding="utf-8") as fh:
         json.dump({k: list(v) for k, v in table.items()}, fh, ensure_ascii=False, indent=1)
     try:
         cw, ch, crgba, src = load_texture("TileSheets/crops", content_dirs)
@@ -580,7 +580,7 @@ def _cache_font(tmp, content_dirs, log):
     if not fonts:
         log("  ⚠️  没找到游戏的中文字体，文字用系统字体")
         return
-    with open(os.path.join(tmp, "font.json"), "w") as fh:
+    with open(os.path.join(tmp, "font.json"), "w", encoding="utf-8") as fh:
         json.dump({"fonts": fonts}, fh, ensure_ascii=False)
 
 
@@ -620,7 +620,7 @@ def font_page_path(page):
 def load_crop_table():
     from .. import farm
     try:
-        with open(os.path.join(CACHE_ROOT, "crops.json")) as fh:
+        with open(os.path.join(CACHE_ROOT, "crops.json"), encoding="utf-8") as fh:
             return {k: (v[0], str(v[1]), int(v[2]), list(v[3])) for k, v in json.load(fh).items()}
     except (IOError, OSError, ValueError, IndexError, TypeError):
         return dict(farm.CROPS)
@@ -633,8 +633,7 @@ def crop_sprite_path(seed):
 def bobber_styles():
     """缓存里有几种浮漂样式（0 = 没有原版浮漂表）。"""
     try:
-        with open(_stamp_path()) as fh:
-            return int(json.load(fh).get("bobber_styles", 0))
+        return int(_paths.load_json(_stamp_path()).get("bobber_styles", 0))
     except (IOError, OSError, ValueError, TypeError):
         return 0
 

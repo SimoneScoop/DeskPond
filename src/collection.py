@@ -10,7 +10,7 @@ import time
 
 from . import progression
 
-from .paths import DATA_DIR as APP_SUPPORT
+from .paths import DATA_DIR as APP_SUPPORT, load_json
 DEFAULT_PATH = os.path.join(APP_SUPPORT, "collection.json")
 
 
@@ -35,8 +35,7 @@ class Collection(object):
 
     def load(self):
         try:
-            with open(self.path) as fh:
-                data = json.load(fh)
+            data = load_json(self.path)
         except (IOError, OSError, ValueError):
             return
         self.fish = data.get("fish", {})
@@ -64,7 +63,7 @@ class Collection(object):
             if d and not os.path.isdir(d):
                 os.makedirs(d)
             tmp = self.path + ".tmp"
-            with open(tmp, "w") as fh:
+            with open(tmp, "w", encoding="utf-8") as fh:
                 json.dump({"fish": self.fish, "days": self.days, "items": self.items,
                            "treasure": self.treasure, "inventory": self.inventory,
                            "xp": self.xp, "crops": self.crops, "farm": self.farm,

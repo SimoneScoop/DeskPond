@@ -6,7 +6,7 @@ import json
 import os
 import sys
 
-from .paths import DATA_DIR as PREFS_DIR
+from .paths import DATA_DIR as PREFS_DIR, load_json
 PREFS_PATH = os.path.join(PREFS_DIR, "prefs.json")
 
 _cache = None
@@ -16,8 +16,7 @@ def load(force=False):
     global _cache
     if _cache is None or force:
         try:
-            with open(PREFS_PATH, "r") as fh:
-                _cache = json.load(fh)
+            _cache = load_json(PREFS_PATH)
         except (IOError, ValueError):
             _cache = {}
     return _cache
@@ -30,7 +29,7 @@ def save(prefs=None):
     try:
         if not os.path.isdir(PREFS_DIR):
             os.makedirs(PREFS_DIR)
-        with open(PREFS_PATH, "w") as fh:
+        with open(PREFS_PATH, "w", encoding="utf-8") as fh:
             json.dump(_cache or {}, fh, ensure_ascii=False, indent=2)
     except IOError as exc:
         sys.stderr.write("[Prefs] 写入 %s 失败: %s\n" % (PREFS_PATH, exc))
