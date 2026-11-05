@@ -12,8 +12,15 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
 def _log_to_file():
-    """没有控制台时 sys.stdout / sys.stderr 是 None：改成写日志文件，返回日志路径。"""
-    if sys.stdout is not None and sys.stderr is not None:
+    """没有控制台时 sys.stdout / sys.stderr 是 None：改成写日志文件，返回日志路径。
+    有控制台时只把编码改成 UTF-8（英文版 Windows 的控制台是 cp1252，打印中文会出错）。"""
+    selftest = "--selftest" in sys.argv          # 自检时总是写日志文件，GitHub Actions 读它
+    if sys.stdout is not None and sys.stderr is not None and not selftest:
+        for stream in (sys.stdout, sys.stderr):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+            except Exception:
+                pass
         return None
     try:
         from src.paths import DATA_DIR
@@ -22,9 +29,9 @@ def _log_to_file():
         fh = open(path, "w", encoding="utf-8", buffering=1)
     except Exception:
         fh, path = open(os.devnull, "w"), None
-    if sys.stdout is None:
+    if sys.stdout is None or selftest:
         sys.stdout = fh
-    if sys.stderr is None:
+    if sys.stderr is None or selftest:
         sys.stderr = fh
     return path
 
