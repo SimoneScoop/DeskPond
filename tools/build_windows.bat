@@ -5,7 +5,7 @@ rem 打出来的东西在 dist\DeskPond\ ；不含任何游戏素材（运行时
 cd /d "%~dp0\.."
 python -m pip install -r requirements-windows.txt pyinstaller || goto :error
 python -m PyInstaller --noconfirm --windowed --name DeskPond ^
-  --collect-submodules src run_win.pyw || goto :error
+  --collect-submodules src --hidden-import __future__ run_win.pyw || goto :error
 echo.
 echo 打包好了：dist\DeskPond\DeskPond.exe
 pause
