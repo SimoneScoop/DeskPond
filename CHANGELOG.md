@@ -1,14 +1,5 @@
 # 更新记录 / Changelog
 
-## v1.0.1
-
-**Windows 下载版修复**
-- 修复：Windows 下载版点「仍要运行」后没反应、打不开（没有控制台时第一次读取素材就出错）
-- 第一次启动读取游戏素材时显示提示窗，不再像没反应
-- 重复双击会提示「已经在运行」，并告诉你托盘图标可能藏在任务栏的 ^ 里
-- 启动出错会弹框说明原因，日志写到 `%APPDATA%\DeskPond\deskpond.log`
-- 每次打包都会在 GitHub 的 Windows 机器上真的启动一遍 exe 自检，不通过不发布
-
 ## v1.0.0 — 第一个公开版本
 
 **改名**：项目从「摸鱼钓鱼 / MoyuFishing」改名为「桌面摸鱼 / DeskPond」。
@@ -35,6 +26,8 @@
 - 菜单按「用得上才出现」整理；水面和农田都有右键菜单
 
 **平台和下载**
+- 每次打包都会在 GitHub 的 Windows 机器上真的启动一遍 exe 自检，不通过不发布
+- Windows：第一次启动读取游戏素材时有提示窗；重复双击会提示「已经在运行」（托盘图标可能藏在任务栏的 ^ 里）；启动出错会弹框说明原因，日志在 `%APPDATA%\DeskPond\deskpond.log`
 - macOS（PyObjC）和 Windows（Qt / PySide6）共用全部游戏逻辑
 - Release 里提供打包好的 `DeskPond-Windows.zip` 和 `DeskPond-macOS.zip`（Apple 芯片），不用装 Python，
   由 GitHub 自动打包；Intel Mac 和想看源码的用户可以直接用源码运行
