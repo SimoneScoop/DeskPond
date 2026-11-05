@@ -37,6 +37,9 @@ Grab them from the **[latest release](https://github.com/SimoneScoop/DeskPond/re
 **The first launch is blocked once** because the builds aren't signed with a paid developer certificate:
 
 - **Windows**: "Windows protected your PC" → *More info* → *Run anyway*
+  - The first launch shows "reading assets from Stardew Valley" for half a minute to two minutes
+  - After that it lives in the tray. **Windows often hides new tray icons behind the ^ arrow** on the taskbar — drag it onto the taskbar to keep it visible
+  - If it can't start, a message box explains why; the log is at `%APPDATA%\DeskPond\deskpond.log` — please attach it to an [issue](https://github.com/SimoneScoop/DeskPond/issues)
 - **Mac** (one time only):
   1. Double-click the zip to unzip it, drag `DeskPond.app` into Applications and open it
   2. macOS says *"DeskPond" cannot be opened because Apple cannot check it for malicious software* → click *OK*
