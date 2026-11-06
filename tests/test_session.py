@@ -123,7 +123,7 @@ def main():
     check("海边能钓河豚", "128" in got, True)
     sess.spot = "town_river"
 
-    print("== 点得越靠上水越深")
+    print("== 点得越靠下水越深")
     sess.show(t); t, _ = run_until(sess, t, S.IDLE)
     sess.click(t, 0.5, depth=5)
     check("记下水深", sess.depth, 5)
@@ -162,10 +162,10 @@ def main():
     sess.show(t); t, _ = run_until(sess, t, S.IDLE)
     sess.click(t, 0.3, y=0.9)
     check("浮漂高度", sess.cast_y, 0.9)
-    check("靠近岸边 = 浅水", sess.depth, 1)
+    check("靠下 = 深水", sess.depth, 5)
     sess.click(t)
     sess.click(t, 0.3, y=0.05)
-    check("靠上 = 深水", sess.depth, 5)
+    check("靠上（岸边）= 浅水", sess.depth, 1)
     sess.click(t)
 
     print("== 经验、品质、宝箱、鱼饵")

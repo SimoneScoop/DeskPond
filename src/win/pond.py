@@ -177,9 +177,12 @@ class PondWidget(QWidget):
         if self.status_line:
             attrs = C.text_attrs(12.5, C.C_TEXT, bold=True)
             size = C.text_size(self.status_line, attrs)
-            bw, bh = size.width + 30, 30
-            C.draw_box9(self.textbox, 14, bottom - bh - 12, bw, bh, scale=2)
-            C.draw_text(self.status_line, 28, bottom - bh - 12 + 7, size.width + 6, 18, attrs)
+            pad_x, bh = 22, 40                 # 字和框之间留够空，不要贴着边
+            bw = size.width + pad_x * 2
+            by = bottom - bh - 12
+            C.draw_box9(self.textbox, 14, by, bw, bh, scale=2)
+            C.draw_text(self.status_line, 14 + pad_x, by + (bh - size.height) / 2.0,
+                        size.width + 6, size.height + 2, attrs)
         hint = self.hint if self.now < self.hint_until else _default_hint(sess)
         if hint:
             attrs = C.text_attrs(15, (255, 255, 255), bold=True)
@@ -277,6 +280,15 @@ class Pond(object):
         top_y = self.column.y() + self.column.height() - self._water_h()
         v.hover_handle = _can_resize(sess) and over and abs(pos.y() - top_y) <= L.HANDLE_ZONE
         P.set_click_through(v, not ((over and ready) or v.dragging))
+        # 鼠标样式：顶边 = 上下拖动；水面上能抛竿 = 手指
+        if v.hover_handle or v.dragging:
+            shape = Qt.SizeVerCursor
+        elif over and ready and sess.state in (S.IDLE, S.WAITING, S.BITE, S.RESULT):
+            shape = Qt.PointingHandCursor
+        else:
+            shape = Qt.ArrowCursor
+        if v.cursor().shape() != shape:
+            v.setCursor(shape)
         v.update()
 
     def water_top_y(self):
@@ -344,12 +356,21 @@ class Panel(object):
 
     def __init__(self):
         self.widget = None
+        self.hide_at = None
 
     @property
     def view(self):
         return self.widget
 
+    def finish(self, now, hold):
+        """小游戏结束：进度条停在最后的样子再留 hold 秒（钓到时能看到进度条走满），然后收起。"""
+        if hold <= 0:
+            self.hide()
+        else:
+            self.hide_at = now + hold
+
     def show(self, game, cast_x, column, water_top_y, scale):
+        self.hide_at = None
         w, h = L.PANEL_W * scale, L.PANEL_H * scale
         x = column.x() + L.panel_origin(cast_x, column.width(), scale)
         y = water_top_y - 18 - h
@@ -361,6 +382,7 @@ class Panel(object):
         self.widget.show()
 
     def hide(self):
+        self.hide_at = None
         if self.widget is not None:
             self.widget.hide()
             self.widget.game = None
@@ -370,6 +392,8 @@ class Panel(object):
         return self.widget is not None and self.widget.isVisible()
 
     def update(self, now):
+        if self.hide_at is not None and now >= self.hide_at:
+            self.hide()
         if self.visible:
             self.widget.now = now
             self.widget.update()

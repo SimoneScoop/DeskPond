@@ -204,8 +204,8 @@ def main():
     wi = {world.today_weather(time.struct_time((2026, 1, d, 10, 0, 0, 0, 1, 0))) for d in range(1, 31)}
     check("冬天不下雨", "rainy" in wi, False)
     check("下雪不算雨天", world.fish_weather("snow"), "sunny")
-    check("点水面最上沿 = 最深", world.depth_from_rel(0.0), 5)
-    check("点岸边 = 最浅", world.depth_from_rel(1.0), 1)
+    check("点水面最上沿 = 最浅", world.depth_from_rel(0.0), 1)
+    check("点屏幕底边 = 最深", world.depth_from_rel(1.0), 5)
     check("中间 = 3", world.depth_from_rel(0.5), 3)
     sizes = [fishdata.roll_size(puffer, random.Random(i)) for i in range(200)]
     check("尺寸在范围内", min(sizes) >= 1 and max(sizes) <= 36, True)

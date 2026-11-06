@@ -47,7 +47,7 @@ class CollectionView(NSView):
         self.close_rect = None
         self.menubox = C.image(ui_path("menubox"))
         self.textbox = C.image(ui_path("textbox"))
-        self.tab_img = C.image(ui_path("tab"))
+        self.tab_img = C.image(ui_path("tab_side")) or C.image(ui_path("tab"))   # 开口朝右的竖排标签
         self.arrows = (C.image(ui_path("arrow_l")), C.image(ui_path("arrow_r")))
         self.stars = [None] + [C.image(ui_path("star_%d" % q)) for q in (1, 2, 3)]
         area = NSTrackingArea.alloc().initWithRect_options_owner_userInfo_(

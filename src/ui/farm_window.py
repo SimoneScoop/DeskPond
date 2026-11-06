@@ -278,7 +278,7 @@ class FarmWindow(object):
 
 # MARK: 桌面摆件
 
-from .farm_window_model import (DESK_COLS, DESK_PAD_X, DESK_TILE, DESK_W, POP_SECONDS,  # noqa: E402
+from .farm_window_model import (CAPTION_H, DESK_COLS, DESK_PAD_X, DESK_TILE, DESK_W, POP_SECONDS,  # noqa: E402
                                 SOIL_Y, caption_y, desk_h, desk_plot_xy, desk_tiles)
 
 DESK_H = desk_h(1)
@@ -366,14 +366,22 @@ class FarmDeskView(NSView):
                 x, sy = desk_plot_xy(plot)
                 C.draw(C.image(junk_icon_path(item)), x + t * 0.15, sy - 12 - k * 40,
                        t * 0.7, t * 0.7, 1.0 - k * k)
-        # 进度：白字 + 深色描边，没有底框
+        # 进度：原版说明框做底的一行字（只一行，放不下就缩小字号），和 Windows 版一样
         if self.caption:
-            cy = caption_y(rows)
-            for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1), (1, 1)):
-                C.draw_text(self.caption, dx, cy + dy, DESK_W, 18,
-                            C.text_attrs(12, (60, 30, 20), bold=True, align="center"))
-            C.draw_text(self.caption, 0, cy, DESK_W, 18,
-                        C.text_attrs(12, (255, 248, 230), bold=True, align="center"))
+            self._draw_caption(caption_y(rows))
+
+    def _draw_caption(self, cy):
+        pad, size = 14, 12.0
+        avail = DESK_W - 4 - pad * 2
+        while size > 9 and C.text_size(self.caption, C.text_attrs(size, C.C_TEXT, True)).width > avail:
+            size -= 0.5
+        attrs = C.text_attrs(size, C.C_TEXT, True)
+        ts = C.text_size(self.caption, attrs)
+        tw = min(ts.width, avail)
+        bw, bh = tw + pad * 2, CAPTION_H
+        bx = (DESK_W - bw) / 2.0
+        C.draw_box9(C.image(ui_path("textbox")), bx, cy, bw, bh, scale=2)
+        C.draw_text(self.caption, bx + pad, cy + (bh - ts.height) / 2.0, tw + 4, ts.height + 2, attrs)
 
 
 class FarmDesk(object):

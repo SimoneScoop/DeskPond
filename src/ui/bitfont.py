@@ -76,25 +76,31 @@ class BitFont(object):
         return len(self._wrap(text, width, k, size, measure)) * line_h(size)
 
     def _wrap(self, text, width, k, size, measure):
+        """自动换行：中文任意两个字之间都能断，英文和数字只在空格处断；
+        逗号句号、右括号这类标点不放到行首（跟上一个字一起换行）。"""
         out = []
         for para in text.split("\n"):
             if width is None:
                 out.append(para)
                 continue
-            cur, cw, last_space = "", 0.0, -1
+            cur, cw = "", 0.0
+            brk = -1                    # cur 里最后一个能断的位置：cur[:brk] 留在这一行
+            skip = False                # 断在空格上：空格本身不要
             for ch in para:
                 a = self._advance(ch, k, size, measure)
-                if cw + a > width and cur:
-                    if last_space > 0:                      # 英文按空格断，中文随便断
-                        out.append(cur[:last_space])
-                        cur = cur[last_space + 1:]
-                    else:
-                        out.append(cur)
-                        cur = ""
-                    cw = sum(self._advance(c, k, size, measure) for c in cur)
-                    last_space = -1
+                if cw + a > width and cur and ch != " ":
+                    if _can_break_before(cur, ch):
+                        out.append(cur.rstrip(" "))
+                        cur, cw = "", 0.0
+                    elif brk > 0:
+                        out.append(cur[:brk].rstrip(" "))
+                        cur = cur[brk + (1 if skip else 0):]
+                        cw = sum(self._advance(c, k, size, measure) for c in cur)
+                    brk, skip = -1, False
                 if ch == " ":
-                    last_space = len(cur)
+                    brk, skip = len(cur), True
+                elif cur and _can_break_before(cur, ch):
+                    brk, skip = len(cur), False
                 cur += ch
                 cw += a
             out.append(cur)
@@ -139,6 +145,23 @@ class BitFont(object):
             if sys_run:
                 ops.append(("sys", sys_run, sys_x, y, x - sys_x, lh))
         return ops
+
+
+NO_LINE_START = set("，。、；：！？）」』】》〉,.;:!?)]}%…—·")
+
+
+def _cjk(ch):
+    return ord(ch) >= 0x2E80
+
+
+def _can_break_before(cur, ch):
+    """cur 后面紧跟 ch 时，能不能在两者之间换行。"""
+    if ch in NO_LINE_START or not cur:
+        return False
+    prev = cur[-1]
+    if prev in "（「『【《〈([{":
+        return False
+    return _cjk(ch) or _cjk(prev)
 
 
 def line_h(size):

@@ -59,7 +59,7 @@ SOIL_Y = int(DESK_TILE * 1.7)        # 第一排锄地的上沿（栅栏在它�
 FARM_W = DESK_COLS * DESK_TILE
 DESK_PAD_X = 70                      # 左右留点地方，下面那行进度字放得下
 DESK_W = FARM_W + DESK_PAD_X * 2
-CAPTION_H = 24
+CAPTION_H = 32                       # 下面那行进度字（带说明框做底）
 POP_SECONDS = 2.2                    # 收获时作物图标往上冒的时间
 
 

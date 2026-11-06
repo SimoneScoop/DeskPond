@@ -19,7 +19,7 @@ import sys
 
 from . import png, xnb
 
-CACHE_VERSION = 13         # 12：一小一大两套中文字体；13：缓存统一 UTF-8（老缓存在中文 Windows 上可能是 GBK）
+CACHE_VERSION = 14         # 13：缓存统一 UTF-8；14：图鉴侧边标签 tab_side（开口朝右）
                            # 11：两排连着的锄地（农田扩建后）
                            # 10：浇过水的锄地（桌面农田专注时用）
                            # 9：原版位图字体（Fonts）、番茄图标
@@ -204,6 +204,18 @@ def load_dict(name, content_dirs, required=True):
     return xnb.load_string_dict(path), path
 
 
+def rotate_ccw(rgba, w, h):
+    """RGBA 像素逆时针转 90°：w×h → h×w（原来的下边变成右边）。"""
+    out = bytearray(w * h * 4)
+    for y in range(h):
+        for x in range(w):
+            si = (y * w + x) * 4
+            nx, ny = y, w - 1 - x            # 新图宽 h、高 w
+            di = (ny * h + nx) * 4
+            out[di:di + 4] = rgba[si:si + 4]
+    return bytes(out)
+
+
 def crop(rgba, width, x, y, w, h):
     out = bytearray()
     for row in range(y, y + h):
@@ -360,6 +372,13 @@ def build_cache(content_dirs, log=None):
         if x + cw > w or y + ch > h:
             raise AssetMissing("Cursors 贴图尺寸不对，找不到 %s" % key)
         png.write_rgba(os.path.join(tmp, "ui", key + ".png"), cw, ch, crop(rgba, w, x, y, cw, ch))
+    # 图鉴左侧的竖排标签：原版的空白标签是开口朝下的（放在菜单上沿用），转 90° 变成开口朝右
+    tab = CURSOR_RECTS.get("tab") or OPTIONAL_RECTS.get("tab")
+    if tab and tab[0] + tab[2] <= w and tab[1] + tab[3] <= h:
+        x, y, cw, ch = tab
+        part = crop(rgba, w, x, y, cw, ch)
+        if any(part[3::4]):
+            png.write_rgba(os.path.join(tmp, "ui", "tab_side.png"), ch, cw, rotate_ccw(part, cw, ch))
     for key, (x, y, cw, ch) in OPTIONAL_RECTS.items():
         if x + cw > w or y + ch > h:
             log("  ⚠️  Cursors 里没有 %s，用代码画" % key)

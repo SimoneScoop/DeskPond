@@ -30,7 +30,7 @@ class AlbumWidget(GameWindow):
         self.selected = None
         self.hits = []
         self.textbox = C.ui("textbox")
-        self.tab_img = C.ui("tab")
+        self.tab_img = C.ui("tab_side") or C.ui("tab")       # 开口朝右的竖排标签
         self.arrows = (C.ui("arrow_l"), C.ui("arrow_r"))
         self.stars = [None] + [C.ui("star_%d" % q) for q in (1, 2, 3)]
 

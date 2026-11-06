@@ -53,6 +53,26 @@ class Any(object):
     def __bool__(self):
         return True
 
+    # 量出来的尺寸也是占位对象：能参与比较和加减乘除（比较一律当「放得下」）
+    def __gt__(self, other):
+        return False
+
+    __lt__ = __ge__ = __le__ = __gt__
+
+    def _arith(self, other):
+        return self
+
+    __add__ = __radd__ = __sub__ = __rsub__ = __mul__ = __rmul__ = _arith
+    __truediv__ = __rtruediv__ = __floordiv__ = __rfloordiv__ = _arith
+
+    def __round__(self, n=None):
+        return 0
+
+    def __int__(self):
+        return 0
+
+    __float__ = __int__
+
 
 class P(object):
     def __init__(self, x, y):
@@ -644,7 +664,7 @@ def main():
         d.pond.view.mouseDown_(FakeMouse(720, 64 + 14))
         d.pond.view.dragging = False
         d.pond.view.mouseDown_(FakeMouse(144, 64 + 108))
-        check("靠上 = 深水，靠下 = 浅水", clicks, [(0.5, 5), (0.1, 1)])
+        check("靠上 = 浅水，靠下 = 深水", clicks, [(0.5, 1), (0.1, 5)])
         d.pond.view.on_click = d._on_pond_click
 
         print("== 水面菜单：高度 / 宽度 / 不透明度")

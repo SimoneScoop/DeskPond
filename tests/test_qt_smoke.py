@@ -274,6 +274,15 @@ def main():
         while a.session.state == S.PLAYING:
             tick(0.1, good)
         check("出结果", a.session.state, S.RESULT)
+        if a.session.result.caught:
+            check("钓到时进度条先停在满格", (a.panel.visible, a.panel.widget.game.progress), (True, 1.0))
+            import time as _t
+            t0 = _t.time()
+            while _t.time() - t0 < 0.8:            # 结果提示晚 0.5 秒出现（真实时间的定时器）
+                QApplication.processEvents()
+                _t.sleep(0.02)
+            tick(0.6)
+            check("然后进度条收起", a.panel.visible, False)
         check("结果提示出现", a.toast.visible, True)
         shot(a.toast.widget, "toast")
 

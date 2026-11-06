@@ -90,8 +90,9 @@ class DialogWidget(GameWindow):
             for label, key in m.buttons:
                 bx, by, bw, bh = r["btn:" + key]
                 C.draw_box9(tb, bx, by, bw, bh, scale=3, fallback_step=2)
-                C.draw_text(label, bx, by + 12, bw, 22, C.text_attrs(
-                    14, C.C_TEXT if key == primary else C.C_EDGE_MID, key == primary, "center"))
+                # 字要待在框的内边里（边框 18 像素宽），放不下就缩小字号
+                C.draw_fit(label, bx + 20, by + 12, bw - 40, 14,
+                           C.C_TEXT if key == primary else C.C_EDGE_MID, key == primary, "center")
 
 
 class GameDialog(object):

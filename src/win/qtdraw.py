@@ -268,9 +268,13 @@ def draw_box9(img, x, y, w, h, scale=3.0, fallback_step=3.0):
     if img is None:
         stardew_box(x, y, w, h, step=fallback_step)
         return
+    # 坐标取整：按钮宽度常是小数（比如三等分），九宫格各块之间会露出一条细缝 / 亮线
+    x0, y0 = int(round(x)), int(round(y))
+    w, h = int(round(x + w)) - x0, int(round(y + h)) - y0
+    x, y = x0, y0
     sw, sh = img.width(), img.height()
     c = sw // 3
-    cs = c * scale
+    cs = int(round(c * scale))
     xs = [(0, c, x, cs), (c, sw - 2 * c, x + cs, w - 2 * cs), (sw - c, c, x + w - cs, cs)]
     ys = [(0, c, y, cs), (c, sh - 2 * c, y + cs, h - 2 * cs), (sh - c, c, y + h - cs, cs)]
     for sx, sww, dx, dw in xs:
@@ -295,3 +299,40 @@ def draw_close(x, y):
 
 def in_rect(px, py, r):
     return r is not None and r[0] <= px <= r[0] + r[2] and r[1] <= py <= r[1] + r[3]
+
+
+# MARK: 菜单（托盘菜单、右键菜单）也用原版说明框的样子
+
+def menu_stylesheet():
+    """QMenu 的样式表：原版说明框做底（九宫格），深棕色字，悬停时一层浅棕。
+    说明框贴图 18×18、四角 6 像素：先按 2 倍「最近邻」放大存一份，样式表里原样贴，像素不糊。"""
+    src = ui_path("textbox")
+    img = QImage(src) if src and os.path.isfile(src) else QImage()
+    border = ""
+    if not img.isNull():
+        big = img.scaled(img.width() * 2, img.height() * 2, Qt.IgnoreAspectRatio, Qt.FastTransformation)
+        path = os.path.join(os.path.dirname(src), "textbox_menu_2x.png")
+        big.save(path)
+        url = path.replace("\\", "/")
+        c = 6 * 2
+        border = "border-image: url('%s') %d %d %d %d stretch stretch; border-width: %dpx;" % (
+            url, c, c, c, c, c)
+    else:
+        border = "background: rgb%s; border: 3px solid rgb%s;" % (C_FILL, C_EDGE_MID)
+    text = "rgb(%d, %d, %d)" % C_TEXT
+    dim = "rgb(%d, %d, %d)" % C_EDGE_MID
+    return """
+QMenu { %(border)s padding: 0px; color: %(text)s; font-size: 10pt; }
+QMenu::item { padding: 6px 26px 6px 22px; margin: 0px; background: transparent; border-radius: 3px; }
+QMenu::item:selected { background: rgba(214, 144, 82, 0.45); color: %(text)s; }
+QMenu::item:disabled { color: %(dim)s; }
+QMenu::separator { height: 2px; background: rgba(%(edge)s, 0.55); margin: 4px 10px; }
+QMenu::indicator { width: 14px; height: 14px; left: 6px; }
+""" % {"border": border, "text": text, "dim": dim, "edge": "%d, %d, %d" % C_EDGE_INNER}
+
+
+def game_menu(menu):
+    """让一个 QMenu 用原版风格：透明窗口（说明框是圆角，四个角要透出去）、不要系统阴影。"""
+    menu.setAttribute(Qt.WA_TranslucentBackground, True)
+    menu.setWindowFlags(menu.windowFlags() | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint)
+    return menu

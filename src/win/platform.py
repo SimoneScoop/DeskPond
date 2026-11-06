@@ -5,7 +5,7 @@
     - 不抢焦点：点水面钓鱼时，你正在用的软件还是当前窗口
     - 全局按住鼠标：溜鱼时不管鼠标在哪按住都算（和 Mac 版一样）
     - 全局快捷键：Ctrl+Alt+F 老板键、Ctrl+Alt+M 在鼠标处打开菜单
-    - 系统提示音
+    - 音效（代码合成的小 WAV，见 src/sounds.py）
 """
 import sys
 
@@ -160,21 +160,34 @@ class HotkeyWindow(QWidget):
 
 # MARK: 声音
 
-SOUND_ALIASES = {"start": "SystemAsterisk", "end": "SystemNotification", "cast": "SystemDefault",
-                 "bite": "SystemExclamation", "caught": "SystemAsterisk", "new": "SystemHand",
-                 "escaped": "SystemDefault", "junk": "SystemDefault"}
 sound_enabled = False
+_files = {}
+
+
+def _sound_files():
+    """合成的小音效（第一次用时生成到数据目录）。不用系统提示音：那个是「噔」的一声，太吵。"""
+    if not _files:
+        import os
+        from .. import sounds
+        from ..paths import DATA_DIR
+        try:
+            _files.update(sounds.ensure(os.path.join(DATA_DIR, "sounds")))
+        except Exception:
+            import traceback
+            traceback.print_exc()
+    return _files
 
 
 def play(kind):
     if not sound_enabled or not kind:
         return
+    path = _sound_files().get(kind)
     if IS_WIN:
+        if not path:
+            return
         try:
             import winsound
-            winsound.PlaySound(SOUND_ALIASES.get(kind, "SystemDefault"),
-                               winsound.SND_ALIAS | winsound.SND_ASYNC)
+            # SND_NODEFAULT：文件有问题时宁可不响，也不要系统的「噔」
+            winsound.PlaySound(path, winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT)
         except Exception:
             pass
-    else:
-        QGuiApplication.beep() if hasattr(QGuiApplication, "beep") else None

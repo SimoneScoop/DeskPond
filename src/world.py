@@ -94,8 +94,8 @@ MAX_DEPTH = 5
 def depth_from_rel(rel):
     """点击位置在水里的相对高度 -> 水深 1..5。
 
-    rel = 0 是水面最上沿（离岸最远、最深），1 是屏幕底边（岸边、最浅）。
+    rel = 0 是水面最上沿（岸边、最浅），1 是屏幕底边（最深）：往下看是往水底看。
     按相对位置算，所以把水面调低不吃亏。
     """
     rel = max(0.0, min(1.0, rel))
-    return max(1, min(MAX_DEPTH, MAX_DEPTH - int(rel * MAX_DEPTH)))
+    return max(1, min(MAX_DEPTH, 1 + int(rel * MAX_DEPTH)))

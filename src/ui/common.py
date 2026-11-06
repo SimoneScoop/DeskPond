@@ -101,9 +101,13 @@ def draw_box9(img, x, y, w, h, scale=3.0, fallback_step=3.0):
     if img is None:
         stardew_box(NSMakeRect(x, y, w, h), step=fallback_step)
         return
+    # 坐标取整：按钮宽度常是小数（比如三等分），九宫格各块之间会露出一条细缝 / 亮线
+    x0, y0 = int(round(x)), int(round(y))
+    w, h = int(round(x + w)) - x0, int(round(y + h)) - y0
+    x, y = x0, y0
     sw, sh = img.size().width, img.size().height
     c = int(sw // 3)
-    cs = c * scale
+    cs = int(round(c * scale))
     xs = [(0, c, x, cs), (c, sw - 2 * c, x + cs, w - 2 * cs), (sw - c, c, x + w - cs, cs)]
     ys = [(0, c, y, cs), (c, sh - 2 * c, y + cs, h - 2 * cs), (sh - c, c, y + h - cs, cs)]
     for sx, sww, dx, dw in xs:

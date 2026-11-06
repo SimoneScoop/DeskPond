@@ -161,7 +161,7 @@ Steam libraries), GOG and Xbox App locations, and asks you to pick the folder if
 
 1. Click the icon in the menu bar / tray → **Start focus 🍅**
 2. When the focus session ends, a pond rises at the bottom of the screen
-3. **Click the water** to cast — the bobber lands where you click. **Higher up means deeper water**, where bigger fish bite
+3. **Click the water** to cast — the bobber lands where you click. **Lower down means deeper water**, where bigger fish bite
 4. Click again when **"!"** appears — too early scares the fish, too late lets it go
 5. When the bar appears, **hold the mouse** to raise the green bar and release to drop it; keep the fish inside until the meter fills
 6. When the break ends you finish your current catch, the pond sinks, and the next Pomodoro starts

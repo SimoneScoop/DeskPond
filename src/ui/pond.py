@@ -2,7 +2,7 @@
 """屏幕底部的水面：升起/退下动画、浮漂、咬钩的「！」、状态提示。
 
 水面高度可以拖动顶边调整（双击顶边恢复默认），宽度和透明度在菜单里选。
-点水面的横向位置决定浮漂落点，纵向位置决定水深：越靠上离岸越远、水越深。
+点水面的横向位置决定浮漂落点，纵向位置决定水深：越靠下水越深。
 """
 import math
 
@@ -171,11 +171,12 @@ class PondView(NSView):
         if self.status_line:
             attrs = C.text_attrs(12.5, C.C_TEXT, bold=True)
             size = C.text_size(self.status_line, attrs)
-            bw, bh = size.width + 28, 30
-            bx = 14
-            box = NSMakeRect(bx, bottom - bh - 12, bw, bh)
-            C.draw_box9(self.textbox, box.origin.x, box.origin.y, bw, bh, scale=2)
-            C.draw_text(self.status_line, bx + 14, bottom - bh - 12 + 7, size.width + 4, 18, attrs)
+            pad_x, bh = 22, 40                 # 字和框之间留够空，不要贴着边
+            bw, bx = size.width + pad_x * 2, 14
+            by = bottom - bh - 12
+            C.draw_box9(self.textbox, bx, by, bw, bh, scale=2)
+            C.draw_text(self.status_line, bx + pad_x, by + (bh - size.height) / 2.0,
+                        size.width + 4, size.height + 2, attrs)
         # 中间：操作提示
         hint = self.hint if self.now < self.hint_until else _default_hint(sess)
         if hint:

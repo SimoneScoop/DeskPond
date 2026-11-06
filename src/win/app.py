@@ -40,6 +40,7 @@ MODES = [("original", "原版手感"), ("casual", "轻松")]
 BOSS_KEY_LABEL = "Ctrl+Alt+F"
 MENU_KEY_LABEL = "Ctrl+Alt+M"
 SELFTEST = "--selftest" in sys.argv     # 打包后自检（GitHub Actions 用）：启动成功 3 秒后自己退出，不弹任何框
+CATCH_HOLD = 0.5                        # 钓到后进度条满格停留几秒
 TRAY_HINT = "图标在屏幕右下角托盘里；看不到的话点任务栏右边的 ^ 小箭头。"
 
 SOUNDS = {"break_start": "start", "break_end": "end", S.EV_CAST: "cast", S.EV_BITE: "bite",
@@ -265,8 +266,9 @@ class App(QObject):
     # MARK: 托盘图标
 
     def _setup_tray(self):
+        self.qapp.setStyleSheet(C.menu_stylesheet())     # 托盘菜单、右键菜单都用原版说明框的样子
         self.tray = QSystemTrayIcon(self)
-        self.menu = QMenu()
+        self.menu = C.game_menu(QMenu())
         self.menu.aboutToShow.connect(self._build_menu)
         self.tray.setContextMenu(self.menu)
         self.tray.activated.connect(self._on_tray)
@@ -357,7 +359,7 @@ class App(QObject):
             if it is None:
                 menu.addSeparator()
             elif it.children is not None:
-                self._fill_menu(menu.addMenu(it.title), it.children)
+                self._fill_menu(C.game_menu(menu.addMenu(it.title)), it.children)
             else:
                 fn = (lambda a=it.action, v=it.arg: self.menu_do(a, v)) if it.action else None
                 a = self._act(menu, it.title, fn, checked=it.checked, enabled=it.enabled)
@@ -368,7 +370,7 @@ class App(QObject):
 
     def _context_menu(self, items):
         """右键菜单（水面、农田摆件）。"""
-        menu = QMenu()
+        menu = C.game_menu(QMenu())
         self._fill_menu(menu, items)
         return menu
 
@@ -493,10 +495,18 @@ class App(QObject):
             scale = L.panel_scale(pond.column.height(), pond.height)
             self.panel.show(sess.game, sess.cast_x, pond.column, pond.water_top_y(), scale)
         elif ev in (S.EV_CAUGHT, S.EV_ESCAPED):
-            self.panel.hide()
             r = sess.result
+            hold = CATCH_HOLD if r.caught else 0.0
+            self.panel.finish(now, hold)       # 钓到时进度条先停在满格一会儿，再出结果
             before = self.collection.caught_species() - (1 if r.is_new else 0)
-            self.toast.show_result(r, sess.cast_x, pond.column, pond.water_top_y())
+
+            def show_toast(r=r, x=sess.cast_x):
+                if sess.result is r and sess.state == S.RESULT:
+                    self.toast.show_result(r, x, pond.column, pond.water_top_y())
+            if hold > 0:
+                QTimer.singleShot(int(hold * 1000), show_toast)
+            else:
+                show_toast()
             if r.caught:
                 P.play(SOUNDS["new_fish"] if r.is_new else SOUNDS["caught"])
                 print("[桌面摸鱼] 钓到 %s %d 英寸%s" % (r.fish.display_name, r.size,

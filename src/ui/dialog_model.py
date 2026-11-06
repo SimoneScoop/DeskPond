@@ -5,7 +5,7 @@
 Tab / ↑↓ 换行，回车 = 第一个（主要）按钮，Esc = 取消。
 """
 
-W = 440
+W = 480
 PAD = 32
 TITLE_Y = 28
 TITLE_H = 30
@@ -106,7 +106,7 @@ class Dialog(object):
             y += 26
         y += 8
         n = len(self.buttons)
-        bw = (W - PAD * 2 - BTN_GAP * (n - 1)) / float(n)
+        bw = (W - PAD * 2 - BTN_GAP * (n - 1)) // n        # 整数宽：小数宽的九宫格会露缝
         # 主要按钮放最右边（和 macOS / 原版菜单一样，「好」在右）
         for k, (_, key) in enumerate(reversed(self.buttons)):
             r["btn:" + key] = (PAD + k * (bw + BTN_GAP), y, bw, BTN_H)
@@ -166,7 +166,7 @@ FIELD_HINT = "点 ◀ ▶ 加减（按住 Shift 一次 5），也可以直接打
 
 WELCOME_TEXT = ("专注 %d 分钟后，屏幕底部会变成鱼塘：点水面抛竿，看到「！」就点，"
                 "然后按住鼠标让绿条罩住小鱼。钓到的鱼会存进图鉴。\n\n"
-                "点得越靠上水越深，越容易钓到好鱼；拖水面顶边能调高度。"
+                "点得越靠下水越深，越容易钓到好鱼；拖水面顶边能调高度。"
                 "有人走过来就按 %s，水面立刻消失。")
 # 第一个是主要按钮（回车），「稍后」是 Esc
 WELCOME_BUTTONS = [("开始专注 🍅", "focus"), ("先摸一会儿 🐟", "fish"), ("稍后", "cancel")]

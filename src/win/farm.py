@@ -236,7 +236,7 @@ class FarmWindow(object):
 
 # MARK: 桌面摆件（和 Mac 版一样：没有底、没有框，只有原版物件）
 
-from ..ui.farm_window_model import (DESK_COLS, DESK_PAD_X, DESK_TILE, DESK_W, POP_SECONDS,  # noqa: E402
+from ..ui.farm_window_model import (CAPTION_H, DESK_COLS, DESK_PAD_X, DESK_TILE, DESK_W, POP_SECONDS,  # noqa: E402
                                     SOIL_Y, caption_y, desk_h, desk_plot_xy, desk_tiles)
 
 DESK_H = desk_h(1)
@@ -247,9 +247,10 @@ class FarmDeskWidget(QWidget):
     def __init__(self, on_top=True):
         super(FarmDeskWidget, self).__init__()
         self.on_top = None
-        self.set_level(on_top)
+        # 透明背景必须在原生窗口创建之前设好（set_level 里会创建），不然 Windows 上是黑底
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setAttribute(Qt.WA_ShowWithoutActivating, True)
+        self.set_level(on_top)
         self.resize(DESK_W, DESK_H)
         self.farm = None
         self.caption = ""
@@ -270,13 +271,18 @@ class FarmDeskWidget(QWidget):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool | Qt.WindowDoesNotAcceptFocus
                             | Qt.NoDropShadowWindowHint
                             | (Qt.WindowStaysOnTopHint if on_top else Qt.WindowStaysOnBottomHint))
+        self.setAttribute(Qt.WA_TranslucentBackground, True)   # 改标志会重建原生窗口：透明要跟着
         P.set_no_activate(self)           # 改标志会重建原生窗口，样式要重新设
         if shown:                         # 改窗口标志会把窗口藏起来，重新显示
             self.show()
 
+    def enterEvent(self, e):
+        self.setCursor(Qt.OpenHandCursor)          # 能拖动
+
     def mousePressEvent(self, e):
         if e.button() == Qt.LeftButton:
             self._drag = QCursor.pos() - self.pos()
+            self.setCursor(Qt.ClosedHandCursor)
         elif e.button() == Qt.RightButton and self.on_menu is not None:
             self.on_menu().exec(QCursor.pos())
 
@@ -285,6 +291,7 @@ class FarmDeskWidget(QWidget):
             self.move(QCursor.pos() - self._drag)
 
     def mouseReleaseEvent(self, e):
+        self.setCursor(Qt.OpenHandCursor)
         if self._drag is not None:
             self._drag = None
             if self.on_moved:
@@ -329,14 +336,22 @@ class FarmDeskWidget(QWidget):
                     x, sy = desk_plot_xy(plot)
                     C.draw(C.image(junk_icon_path(item)), x + t * 0.15, sy - 12 - k * 40,
                            t * 0.7, t * 0.7, 1.0 - k * k)
-            # 进度：白字 + 深色描边，没有底框
+            # 进度：原版说明框做底的一行字（只一行，放不下就缩小字号），后面的窗口不会透上来
             if self.caption:
-                cy = caption_y(rows)
-                for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1), (1, 1)):
-                    C.draw_text(self.caption, dx, cy + dy, DESK_W, 18,
-                                C.text_attrs(12, (60, 30, 20), bold=True, align="center"))
-                C.draw_text(self.caption, 0, cy, DESK_W, 18,
-                            C.text_attrs(12, (255, 248, 230), bold=True, align="center"))
+                self._draw_caption(caption_y(rows))
+
+    def _draw_caption(self, cy):
+        pad, size = 14, 12.0
+        avail = DESK_W - 4 - pad * 2
+        while size > 9 and C.text_size(self.caption, C.text_attrs(size, C.C_TEXT, True)).width > avail:
+            size -= 0.5
+        attrs = C.text_attrs(size, C.C_TEXT, True)
+        ts = C.text_size(self.caption, attrs)
+        tw = min(ts.width, avail)
+        bw, bh = tw + pad * 2, CAPTION_H
+        bx = (DESK_W - bw) / 2.0
+        C.draw_box9(C.ui("textbox"), bx, cy, bw, bh, scale=2)
+        C.draw_text(self.caption, bx + pad, cy + (bh - ts.height) / 2.0, tw + 4, ts.height + 2, attrs)
 
 
 class FarmDesk(object):

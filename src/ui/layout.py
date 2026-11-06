@@ -187,7 +187,7 @@ def default_hint(sess):
     from .. import session as S
     novice = getattr(sess, "novice", True)
     if sess.state == S.IDLE:
-        return "点一下水面抛竿 · 越靠上水越深" if novice else ""
+        return "点一下水面抛竿 · 越靠下水越深" if novice else ""
     if sess.state == S.WAITING:
         extra = " · 挂了鱼饵" if sess.baited else ""
         if novice:
