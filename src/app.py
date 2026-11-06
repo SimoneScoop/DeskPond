@@ -38,6 +38,7 @@ KEY_DOWN_MASK = 1 << 10          # NSEventMaskKeyDown
 MOD_SHIFT, MOD_CTRL, MOD_OPTION, MOD_COMMAND = 1 << 17, 1 << 18, 1 << 19, 1 << 20
 KEY_F, KEY_ESC, KEY_M = 3, 53, 46
 BOSS_KEY_LABEL = "⌥⌘F"
+CATCH_HOLD = 0.5                 # 钓到后进度条满格停留几秒，再出结果
 MENU_KEY_LABEL = "⌥⌘M"           # 菜单栏图标被挤掉时，用它在鼠标处弹出菜单
 
 SOUNDS = {
@@ -108,6 +109,7 @@ class AppDelegate(NSObject):
         self.last_tick = 0.0
         self.last_title = 0.0
         self.boss_hidden = False      # 被老板键藏起来了，摸鱼时间还没到
+        self.pending_toast = None     # (什么时候出, 结果, 落点)：钓到时晚一点出结果
         self.monitors = []
         self.monitors_trusted = None
         return self
@@ -254,6 +256,8 @@ class AppDelegate(NSObject):
                 self._on_session_event(ev, now)
             if sess.state != S.RESULT:
                 self.toast.hide()
+                self.pending_toast = None
+            self._show_pending_toast(now)
             mouse = NSEvent.mouseLocation()
             self.pond.update(now, self._status_line(now, full=self.pond.contains(mouse)), mouse)
             self.panel.update(now)
@@ -488,6 +492,14 @@ class AppDelegate(NSObject):
         elif self.boss_hidden and self.pomo.fishing:
             self._open_pond(now, quiet=True)
 
+    def _show_pending_toast(self, now):
+        p = self.pending_toast
+        if p is None or now < p[0]:
+            return
+        self.pending_toast = None
+        if self.session.result is p[1] and self.session.state == S.RESULT:
+            self.toast.show_result(p[1], p[2], self.pond.screen_frame, self.pond.water_top_screen_y())
+
     def _on_session_event(self, ev, now):
         sess = self.session
         pond = self.pond
@@ -496,10 +508,12 @@ class AppDelegate(NSObject):
             self.panel.show(sess.game, sess.cast_x, pond.screen_frame,
                             pond.water_top_screen_y(), scale)
         elif ev in (S.EV_CAUGHT, S.EV_ESCAPED):
-            self.panel.hide()
-            species_before = self.collection.caught_species() - (1 if sess.result.is_new else 0)
             r = sess.result
-            self.toast.show_result(r, sess.cast_x, pond.screen_frame, pond.water_top_screen_y())
+            hold = CATCH_HOLD if r.caught else 0.0
+            self.panel.finish(now, hold)       # 钓到时进度条先停在满格一会儿，再出结果
+            species_before = self.collection.caught_species() - (1 if r.is_new else 0)
+            self.pending_toast = (now + hold, r, sess.cast_x)
+            self._show_pending_toast(now)
             if r.caught:
                 C.play(SOUNDS["new_fish"] if r.is_new else SOUNDS["caught"])
                 print("[桌面摸鱼] 钓到 %s %d 英寸%s" % (r.fish.display_name, r.size,

@@ -536,6 +536,9 @@ def main():
         while d.session.state == S.PLAYING:
             tick(0.1, good)
         check("出结果", d.session.state, S.RESULT)
+        if d.session.result.caught:
+            check("钓到时竖条先停在满格", d.panel.view.game.progress, 1.0)
+            tick(0.6)                          # 半秒后才收起竖条、出结果
         check("竖条收起", d.panel.window.isVisible(), False)
         check("结果提示出现", d.toast.window.isVisible(), True)
         d.toast.view.drawRect_(None)

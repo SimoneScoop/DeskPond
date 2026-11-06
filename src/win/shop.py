@@ -130,7 +130,7 @@ class ShopWidget(GameWindow):
     def _expand_row(self, y):
         C.draw(C.ui("dirt2_tm"), 38, y + 4, 36, 36)
         C.draw_text(EXPAND_NAME, 90, y + 2, 300, 20, C.text_attrs(14, C.C_TEXT, True))
-        C.draw_text(EXPAND_DESC % farmlib.EXPAND_LEVEL, 90, y + 24, 340, 18, C.text_attrs(11.5, C.C_EDGE_MID))
+        C.draw_fit(EXPAND_DESC % farmlib.EXPAND_LEVEL, 90, y + 24, 340, 11.5, C.C_EDGE_MID, align=None)
         label, ok = expand_button(self.collection)
         bx = W - 36 - BTN_W
         if ok:
@@ -145,7 +145,7 @@ class ShopWidget(GameWindow):
         if icon is not None:
             C.draw(icon, 36, y + 2, 40, 40)
         C.draw_text(self.name_of(seed), 90, y + 2, 300, 20, C.text_attrs(14, C.C_TEXT, True))
-        C.draw_text(seed_desc(seed, col), 90, y + 24, 340, 18, C.text_attrs(11.5, C.C_EDGE_MID))
+        C.draw_fit(seed_desc(seed, col), 90, y + 24, 340, 11.5, C.C_EDGE_MID, align=None)
         price = farmlib.SEED_PRICES[seed]
         bx = W - 36 - BTN_W
         ok = col.gold >= price
@@ -166,7 +166,7 @@ class ShopWidget(GameWindow):
         if icon is not None:
             C.draw(icon, 36, y + 2, 40, 40)
         C.draw_text(self._name(kind, key), 90, y + 2, 300, 20, C.text_attrs(14, C.C_TEXT, True))
-        C.draw_text(desc, 90, y + 24, 340, 18, C.text_attrs(11.5, C.C_EDGE_MID))
+        C.draw_fit(desc, 90, y + 24, 340, 11.5, C.C_EDGE_MID, align=None)
         state, note = g.shop_state(key, col.level, col.gold)
         bx = W - 36 - BTN_W
         label = LABEL[state]
@@ -180,7 +180,7 @@ class ShopWidget(GameWindow):
         if state == "equipped":
             label = "正在用" + ("（再点卸下）" if kind == "tackle" else "")
         clr = C.C_TEXT if state in ("buy", "owned", "equipped") else (150, 110, 90)
-        C.draw_text(label, bx, y + 12, BTN_W, 18, C.text_attrs(12, clr, True, "center"))
+        C.draw_fit(label, bx + 6, y + 12, BTN_W - 12, 12, clr, True, "center")
 
 
 class ShopWindow(object):

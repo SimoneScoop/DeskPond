@@ -94,8 +94,17 @@ class PanelWindow(object):
     def __init__(self):
         self.window = None
         self.view = None
+        self.hide_at = None
+
+    def finish(self, now, hold):
+        """小游戏结束：进度条停在最后的样子再留 hold 秒（钓到时能看到进度条走满），然后收起。"""
+        if hold <= 0:
+            self.hide()
+        else:
+            self.hide_at = now + hold
 
     def show(self, game, cast_x, screen_frame, water_top_y, scale):
+        self.hide_at = None
         w, h = L.PANEL_W * scale, L.PANEL_H * scale
         x = screen_frame.origin.x + L.panel_origin(cast_x, screen_frame.size.width, scale)
         y = water_top_y + 18
@@ -112,11 +121,14 @@ class PanelWindow(object):
         self.window.orderFrontRegardless()
 
     def hide(self):
+        self.hide_at = None
         if self.window is not None:
             self.window.orderOut_(None)
             self.view.game = None
 
     def update(self, now):
+        if self.hide_at is not None and now >= self.hide_at:
+            self.hide()
         if self.window is not None and self.window.isVisible():
             self.view.now = now
             self.view.setNeedsDisplay_(True)

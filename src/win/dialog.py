@@ -89,9 +89,9 @@ class DialogWidget(GameWindow):
             primary = m.default_key()
             for label, key in m.buttons:
                 bx, by, bw, bh = r["btn:" + key]
-                C.draw_box9(tb, bx, by, bw, bh, scale=3, fallback_step=2)
-                # 字要待在框的内边里（边框 18 像素宽），放不下就缩小字号
-                C.draw_fit(label, bx + 20, by + 12, bw - 40, 14,
+                C.draw_box9(tb, bx, by, bw, bh, scale=2, fallback_step=2)
+                # 字要待在框的内边里（边框 12 像素宽），放不下就缩小字号
+                C.draw_fit(label, bx + 16, by + 12, bw - 32, 14,
                            C.C_TEXT if key == primary else C.C_EDGE_MID, key == primary, "center")
 
 

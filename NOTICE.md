@@ -13,7 +13,7 @@
 `docs/media/` 里的演示动图是程序运行画面的录屏，只用于在 README 里展示，画面中的游戏美术同样归 ConcernedApe LLC 所有。
 
 钓鱼小游戏的手感参照原版，但物理和鱼的运动是重新写的近似实现，不含游戏代码。
-音效使用系统自带的声音（macOS 系统声音 / Windows 系统提示音）。界面文字用的中文字体也是运行时从你安装的游戏里读取的，同样只缓存在本机。
+音效：macOS 用系统自带的声音；Windows 用程序自己合成的几段小音效（`src/sounds.py`，同样不含游戏文件）。界面文字用的中文字体也是运行时从你安装的游戏里读取的，同样只缓存在本机。
 
 DeskPond (formerly MoyuFishing) is an unofficial, non-commercial fan project. It is not affiliated
 with or endorsed by ConcernedApe. Stardew Valley and all related artwork and data are
